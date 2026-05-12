@@ -178,7 +178,7 @@ public:
 		}
 	}
 
-	void usarItemInventario(int param_posicionItem, Enemigo& param_statsEnemigo) { //permite utilizar un objeto del inventario
+	int usarItemInventario(int param_posicionItem, Enemigo& param_statsEnemigo) { //permite utilizar un objeto del inventario
 		if (param_posicionItem < inventarioPersonal.size() && param_posicionItem >= 0) { //verifica que sea menor al tamaño de la categoria
 			inventarioPersonal.at(param_posicionItem).usarItem();
 			switch (inventarioPersonal.at(param_posicionItem).mostrarTipoItem()) {
@@ -197,6 +197,11 @@ public:
 				std::cout << "Te quedaste sin " << inventarioPersonal.at(param_posicionItem).mostrarNombreItem() << std::endl;
 				inventarioPersonal.erase(inventarioPersonal.begin() + param_posicionItem);
 			}
+			return 1;
+		}
+		else {
+			std::cout << "Esta opcion no existe" << std::endl;
+			return 0;
 		}
 	}
 
@@ -221,11 +226,14 @@ public:
 				std::cout << "Parece que no tengo objetos..." << std::endl;
 			}
 			else {
+				int usoObjeto = 0;
+				while (usoObjeto == 0) {
 				mostrarInventario();
 				std::cout << "que objeto quieres utilizar?" << std::endl;
 				int opcionObjeto;
 				std::cin >> opcionObjeto;
-				usarItemInventario(opcionObjeto - 1, param_statsEnemigo);
+				usoObjeto = usarItemInventario(opcionObjeto - 1, param_statsEnemigo);
+				}
 			}
 			break;
 		default: 
