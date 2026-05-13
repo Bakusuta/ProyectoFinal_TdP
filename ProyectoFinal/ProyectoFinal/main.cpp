@@ -15,6 +15,16 @@ int generarNumeroAleatorio(int param_numeroMaximo, int param_numeroMinimo) { //g
 	return numRandom;
 }
 
+int ingresarNumero() {
+	int valor = 0;
+	while (!(std::cin >> valor)) {
+		std::cout << "Esto es una palabra, por favor dime un numero" << std::endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+	return valor;
+}
+
 class Item { //clase item
 	//datos
 	std::string nombreItem;
@@ -139,6 +149,8 @@ class Enemigo : public Personaje {
 	//metodos
 public:
 	Enemigo(std::string param_nombreEnemigo, int param_vidaEnemigo, int param_danioEnemigo, int param_experienciaEnemigo, int param_nivelEnemigo) : Personaje(param_nombreEnemigo, param_vidaEnemigo, param_danioEnemigo, param_experienciaEnemigo, param_nivelEnemigo) {} 
+
+
 };
 
 //clase jugador, hijo de personaje
@@ -214,8 +226,7 @@ public:
 		std::cout << "----Turno del jugador----" << std::endl;
 		std::cout << "Dime, que te gustaria hacer?" << std::endl;
 		std::cout << "0. atacar \n1. Ver tu inventario" << std::endl;
-		int opcionMenu = 0;
-		std::cin >> opcionMenu;
+		int opcionMenu = ingresarNumero();
 		switch (opcionMenu) {
 		case 0:
 			//atacar --> hacer daño / recibir daño
@@ -231,7 +242,7 @@ public:
 				mostrarInventario();
 				std::cout << "que objeto quieres utilizar?" << std::endl;
 				int opcionObjeto;
-				std::cin >> opcionObjeto;
+				opcionObjeto = ingresarNumero();
 				usoObjeto = usarItemInventario(opcionObjeto - 1, param_statsEnemigo);
 				}
 			}
@@ -404,7 +415,7 @@ int main() {
 	do {
 		std::cout << "Dime, que te gustaria ver?" << std::endl;
 		std::cout << "0. Salir de la Tienda \n1. Ver tu inventario \n2. Curaciones \n3. Arrojadizos" << std::endl;
-		std::cin >> centinela;
+		centinela = ingresarNumero();
 		if (centinela == 1) { //muestra el inventario si elegiste la opcion 1
 			jugador.mostrarInventario();
 		}
@@ -414,7 +425,7 @@ int main() {
 				tienda.mostrarItemsCategoria(centinela);
 				std::cout << "deseas comprar algun producto?, (escribe 0 si no quieres comprar algo)" << std::endl;
 				std::cout << "Tienes " << jugador.mostrarOro() << " Oro" << std::endl;
-				std::cin >> eleccion;
+				eleccion = ingresarNumero();
 				if (eleccion != 0) {
 					tienda.comprarProductoCategoria(centinela, eleccion, jugador);
 				}
