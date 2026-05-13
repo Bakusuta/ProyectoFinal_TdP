@@ -164,6 +164,7 @@ public:
 	}
 };
 
+
 //clase jugador, hijo de personaje
 class Jugador : public Personaje {
 	//datos
@@ -265,6 +266,7 @@ public:
 		std::cout << "Vida enemigo: " << param_statsEnemigo.verVida() << std::endl;
 	}
 };
+
 
 class Categoria { //clase categoria de los items
 	//datos
@@ -409,78 +411,94 @@ public:
 };
 
 
+class Mundo {
+	//datos
+
+public:
+	//metodos
+	Mundo() {}
+
+	void modoTienda(Jugador& param_statsJugador){
+		//Tienda
+		int centinela = 0;
+		std::cout << "Un gusto joven. tengo mucha mercancia el dia de hoy, no dude en comprar si lo necesita" << std::endl;
+		Tienda tienda;
+		do {
+			std::cout << "Dime, que te gustaria ver?" << std::endl;
+			std::cout << "0. Salir de la Tienda \n1. Ver tu inventario \n2. Curaciones \n3. Arrojadizos" << std::endl;
+			centinela = ingresarNumero();
+			if (centinela == 1) { //muestra el inventario si elegiste la opcion 1
+				param_statsJugador.mostrarInventario();
+			}
+			else if (centinela > 1 && centinela <= 3) { //mientras no supere los rangos mantente alli 
+				int eleccion = 0;
+				do {
+					tienda.mostrarItemsCategoria(centinela);
+					std::cout << "deseas comprar algun producto?, (escribe 0 si no quieres comprar algo)" << std::endl;
+					std::cout << "Tienes " << param_statsJugador.mostrarOro() << " Oro" << std::endl;
+					eleccion = ingresarNumero();
+					if (eleccion != 0) {
+						tienda.comprarProductoCategoria(centinela, eleccion, param_statsJugador);
+					}
+				} while (eleccion != 0);
+			}
+		} while (centinela != 0);
+		
+	}
+
+	void modoCombate(std::string param_nombreEnemigo, int param_vidaEnemigo, int param_danioEnemigo, Jugador& param_statsJugador) {
+		Enemigo enemigo(param_nombreEnemigo, param_vidaEnemigo, param_danioEnemigo, 0, 1);
+		while (enemigo.estaVivo() && param_statsJugador.estaVivo()) {
+
+			//jugador
+			param_statsJugador.opcionesCombateJugador(enemigo);
+			if (!enemigo.estaVivo()) { //esta muerto?
+				std::cout << "Has derrotado al enemigo!!" << std::endl;
+				break;
+			}
+
+			//Turneo Enemigo
+			std::cout << "----Turno del enemigo----" << std::endl;
+			//opciones de combate
+			int eleccionEnemigo = enemigo.opcionesCombateEnemigo();
+			switch (eleccionEnemigo) {
+
+			case 1:
+				std::cout << "Recibiste Daño" << std::endl;
+				param_statsJugador.recibirDanio(enemigo.verDanio());
+				break;
+			case 2:
+				std::cout << "El enemigo se a curado" << std::endl;
+				break;
+			default:
+				std::cout << "Este caso no existe en opciones de combate del enemigo Devmin" << std::endl;
+				break;
+
+			}
+			//mostrar datos pelea
+			std::cout << "Vida Jugador: " << param_statsJugador.verVida() << std::endl;
+			if (!param_statsJugador.estaVivo()) { //esta muerto?
+				std::cout << "Has sido derrotado" << std::endl;
+				break;
+			}
+
+		}
+	}
+};
+
+
 int main() {
 	std::srand(std::time(NULL));
-
+	Mundo aventura;
 	std::string nombreCustom;
-	int centinela = 0;
 
 	//entrada del jugador
-	std::cout << "Bienvenido a mi tienda de pociones aventurero, dime como te llamas?" << std::endl;
+	std::cout << "dime como te llamas?" << std::endl;
 	std::getline(std::cin, nombreCustom);
 	Jugador	jugador(nombreCustom, 200, 20);
 
-	//Tienda
-	std::cout << "Un gusto joven. tengo mucha mercancia el dia de hoy, no dude en comprar si lo necesita" << std::endl;
-	Tienda tienda;
-	do {
-		std::cout << "Dime, que te gustaria ver?" << std::endl;
-		std::cout << "0. Salir de la Tienda \n1. Ver tu inventario \n2. Curaciones \n3. Arrojadizos" << std::endl;
-		centinela = ingresarNumero();
-		if (centinela == 1) { //muestra el inventario si elegiste la opcion 1
-			jugador.mostrarInventario();
-		}
-		else if (centinela > 1 && centinela <= 3) { //mientras no supere los rangos mantente alli 
-			int eleccion = 0;
-			do {
-				tienda.mostrarItemsCategoria(centinela);
-				std::cout << "deseas comprar algun producto?, (escribe 0 si no quieres comprar algo)" << std::endl;
-				std::cout << "Tienes " << jugador.mostrarOro() << " Oro" << std::endl;
-				eleccion = ingresarNumero();
-				if (eleccion != 0) {
-					tienda.comprarProductoCategoria(centinela, eleccion, jugador);
-				}
-			} while (eleccion != 0);
-		}
-	} while (centinela != 0);
-
-	//caso hipotetico de combate para utilizar items
-	Enemigo enemigo("Raiden", 150, 20, 0, 1);
-	while (enemigo.estaVivo() && jugador.estaVivo()) {
-
-		//jugador
-		jugador.opcionesCombateJugador(enemigo);
-		if (!enemigo.estaVivo()) { //esta muerto?
-			std::cout << "Has derrotado al enemigo!!" << std::endl;
-			break;
-		}
-
-		//Turneo Enemigo
-		std::cout << "----Turno del enemigo----" << std::endl;
-		//opciones de combate
-		int eleccionEnemigo = enemigo.opcionesCombateEnemigo();
-		switch (eleccionEnemigo) {
-
-		case 1:
-			std::cout << "Recibiste Daño" << std::endl;
-			jugador.recibirDanio(enemigo.verDanio());
-			break;
-		case 2:
-			std::cout << "El enemigo se a curado" << std::endl;
-			break;
-		default:
-			std::cout << "Este caso no existe en opciones de combate del enemigo Devmin" << std::endl;
-			break;
-
-		}
-		//mostrar datos pelea
-		std::cout << "Vida Jugador: " << jugador.verVida() << std::endl;
-		if (!jugador.estaVivo()) { //esta muerto?
-			std::cout << "Has sido derrotado" << std::endl;
-			break;
-		}
-
-	}
+	aventura.modoTienda(jugador);
+	aventura.modoCombate("Raiden", 180, 20, jugador);
 
 	return 0;
 
