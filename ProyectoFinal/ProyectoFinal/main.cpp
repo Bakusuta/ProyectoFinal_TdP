@@ -145,12 +145,23 @@ public:
 //clase enemigo, hijo de personaje
 class Enemigo : public Personaje {
 	//datos
+	int curaciones = 1;
+
 
 	//metodos
 public:
 	Enemigo(std::string param_nombreEnemigo, int param_vidaEnemigo, int param_danioEnemigo, int param_experienciaEnemigo, int param_nivelEnemigo) : Personaje(param_nombreEnemigo, param_vidaEnemigo, param_danioEnemigo, param_experienciaEnemigo, param_nivelEnemigo) {} 
 
-
+	int opcionesCombateEnemigo(){
+		if (vida <= 60 && curaciones >= 1) {
+			vida += 60;
+			curaciones--;
+			return 2;
+		}
+		else {
+			return 1;
+		}
+	}
 };
 
 //clase jugador, hijo de personaje
@@ -446,9 +457,22 @@ int main() {
 
 		//Turneo Enemigo
 		std::cout << "----Turno del enemigo----" << std::endl;
-		//atacar
-		int danioEnemigo = enemigo.verDanio();
-		jugador.recibirDanio(danioEnemigo);
+		//opciones de combate
+		int eleccionEnemigo = enemigo.opcionesCombateEnemigo();
+		switch (eleccionEnemigo) {
+
+		case 1:
+			std::cout << "Recibiste Daño" << std::endl;
+			jugador.recibirDanio(enemigo.verDanio());
+			break;
+		case 2:
+			std::cout << "El enemigo se a curado" << std::endl;
+			break;
+		default:
+			std::cout << "Este caso no existe en opciones de combate del enemigo Devmin" << std::endl;
+			break;
+
+		}
 		//mostrar datos pelea
 		std::cout << "Vida Jugador: " << jugador.verVida() << std::endl;
 		if (!jugador.estaVivo()) { //esta muerto?
