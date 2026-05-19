@@ -264,7 +264,31 @@ public:
 		}
 		//mostar datos pelea 
 		std::cout << "Vida enemigo: " << param_statsEnemigo.verVida() << std::endl;
+
 	}
+
+	void subirNivel() {
+		experiencia = generarNumeroAleatorio(5, 1) * 10;
+		experiencia = 100;
+		if (experiencia >= 100) {
+			danio += 10;
+			vidaMaxima += 20;
+			vida += 20;
+			nivel += 1;
+			experiencia -= 100;
+			std::cout << "Subiste a nivel: " << nivel << std::endl;
+			mostrarInfoJugador();
+		}
+	}
+
+	void mostrarInfoJugador() {
+		std::cout << "----------------------------------------" << std::endl;
+		std::cout << "Nombre jugador: " << nombre << std::endl;
+		std::cout << "vida: " << vida << "/" << vidaMaxima << std::endl;
+		std::cout << "danio: " << danio << std::endl;
+		std::cout << "nivel: " << nivel << std::endl;
+	}
+
 };
 
 
@@ -454,6 +478,7 @@ public:
 			param_statsJugador.opcionesCombateJugador(enemigo);
 			if (!enemigo.estaVivo()) { //esta muerto?
 				std::cout << "Has derrotado al enemigo!!" << std::endl;
+				param_statsJugador.subirNivel();
 				break;
 			}
 
@@ -484,6 +509,8 @@ public:
 
 		}
 	}
+
+
 };
 
 
