@@ -2,6 +2,12 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <conio.h>
+#include <limits>
+
+#define NOMINMAX
+
+#include <Windows.h>
 
 /*
 camelCase -> variables y funciones(incluidos metodos)
@@ -23,6 +29,22 @@ int ingresarNumero() {
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	}
 	return valor;
+}
+
+void textoOmitible(std::string texto) {
+	for (int i = 0; i < texto.size(); i++) {
+
+		if (_kbhit()) { //se omite el dialogo si se presiona una tecla
+			system("cls");
+			std::cout << texto.substr(i);
+			std::cout.flush();
+			return;
+		}
+
+		std::cout << texto[i];
+		std::cout.flush();
+		Sleep(50);
+	}
 }
 
 class Item { //clase item
@@ -437,10 +459,19 @@ public:
 
 class Mundo {
 	//datos
+	
 
 public:
 	//metodos
-	Mundo() {}
+	Mundo() {
+		aperturaHistoria();
+		std::string nombreCustom;
+		std::getline(std::cin, nombreCustom);
+		Jugador	jugador(nombreCustom, 200, 20);
+
+		modoTienda(jugador);
+		modoCombate("Raiden", 180, 20, jugador);
+	}
 
 	void modoTienda(Jugador& param_statsJugador){
 		//Tienda
@@ -510,6 +541,12 @@ public:
 		}
 	}
 
+	void aperturaHistoria() {
+		std::string guardian =
+
+			"Guardian del tiempo: Tras liberar el Reloj de Arena y convertirme en Guardian del Tiempo, \nmi siguiente tarea fue reiniciar la historia. Libre de ataduras al pasado, tenia la libertad de crear una nueva era. \nCon humildad y autocontrol me acerque a este lienzo en blanco. Tras una cuidadosa preparacion, comence mi trabajo, \npintando sobre la oscuridad. Tras eones, esboce los reinos. Tras eones más, les di vida. En mi nueva era, \ntodos los seres tendran la oportunidad de vivir en paz. Que lo aprovechen o no, sera su responsabilidad. \nMi poder solo me permite empezar la tarea. Es deber de los mortales terminarla.\n \nGuardian del tiempo: Dime, cual es tu nombre, mortal?";
+		textoOmitible(guardian);
+	}
 
 };
 
@@ -518,14 +555,6 @@ int main() {
 	std::srand(std::time(NULL));
 	Mundo aventura;
 	std::string nombreCustom;
-
-	//entrada del jugador
-	std::cout << "dime como te llamas?" << std::endl;
-	std::getline(std::cin, nombreCustom);
-	Jugador	jugador(nombreCustom, 200, 20);
-
-	aventura.modoTienda(jugador);
-	aventura.modoCombate("Raiden", 180, 20, jugador);
 
 	return 0;
 
