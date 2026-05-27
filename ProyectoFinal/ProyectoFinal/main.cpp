@@ -35,7 +35,7 @@ void textoOmitible(std::string texto) {
 	for (int i = 0; i < texto.size(); i++) {
 
 		if (_kbhit()) { //se omite el dialogo si se presiona una tecla
-			_getch();
+			(void)_getch(); 
 			std::cout << texto.substr(i);
 			std::cout.flush();
 			return;
@@ -118,6 +118,7 @@ protected:
 	int experiencia;
 	int nivel;
 
+
 	//metodos
 public:
 	//constructor
@@ -153,6 +154,10 @@ public:
 
 	int verVida() { //metodo de ver vida
 		return vida;
+	}
+
+	int verVidaMaxima() { //metodo para ver vida maxima
+		return vidaMaxima;
 	}
 
 	std::string verNombre() {
@@ -195,6 +200,7 @@ class Jugador : public Personaje {
 	//datos
 	std::vector<Item> inventarioPersonal;
 	int oro = 100;
+	int cooldownEspecial = 0;
 
 	//metodos
 public:
@@ -266,34 +272,57 @@ public:
 
 	void opcionesCombateJugador(Enemigo& param_statsEnemigo) { //menu de combate de jugador 
 		//Inicia Combate
+		int centinela = 0;
 		std::cout << "----Turno de " << nombre << "----" << std::endl;
 		std::cout << "Dime, que te gustaria hacer?" << std::endl;
-		std::cout << "0. atacar \n1. Ver tu inventario" << std::endl;
-		int opcionMenu = ingresarNumero();
-		switch (opcionMenu) {
-		case 0:
-			//atacar --> hacer daño / recibir daño
-			param_statsEnemigo.recibirDanio(verDanio());
-			break;
-		case 1:
-			if (inventarioPersonal.size() == 0) {
-				std::cout << "Parece que no tengo objetos..." << std::endl;
-			}
-			else {
-				int usoObjeto = 0;
-				while (usoObjeto == 0) {
-				mostrarInventario();
-				std::cout << "que objeto quieres utilizar?" << std::endl;
-				int opcionObjeto;
-				opcionObjeto = ingresarNumero();
-				usoObjeto = usarItemInventario(opcionObjeto - 1, param_statsEnemigo);
-				}
-			}
-			break;
-		default: 
-			break;
+		std::cout << "0. atacar" << std::endl;
+		if (cooldownEspecial == 0) {
+			std::cout << "1. Ataque Fuerte" << std::endl;
 		}
-
+		if (inventarioPersonal.size() != 0) {
+			std::cout << "2. ver tu inventario" << std::endl;
+		}
+		while (centinela == 0) {
+			int opcionMenu = ingresarNumero();
+			switch (opcionMenu) {
+			case 0:
+				//atacar --> hacer daño / recibir daño
+				param_statsEnemigo.recibirDanio(verDanio());
+				centinela = 1;
+				break;
+			case 1:
+				if (cooldownEspecial == 0) {
+					param_statsEnemigo.recibirDanio(verDanio() * 2);
+					centinela = 1;
+					cooldownEspecial += 3;
+				}
+				else {
+					std::cout << "Habilidad aun no disponible..." << std::endl;
+				}
+				break;
+			case 2:
+				if (inventarioPersonal.size() == 0) {
+					std::cout << "Parece que no tengo objetos..." << std::endl;
+				}
+				else {
+					int usoObjeto = 0;
+					while (usoObjeto == 0) {
+						mostrarInventario();
+						std::cout << "que objeto quieres utilizar?" << std::endl;
+						int opcionObjeto;
+						opcionObjeto = ingresarNumero();
+						usoObjeto = usarItemInventario(opcionObjeto - 1, param_statsEnemigo);
+						centinela = 1;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+			if (cooldownEspecial != 0) { //reduce el cooldown hasta que llegue a 0
+				cooldownEspecial -= 1;
+			}
+		}
 	}
 
 	void subirNivel() {
@@ -465,7 +494,7 @@ public:
 
 class Mundo {
 	//datos
-	
+	int completado = 0;
 
 public:
 	//metodos
@@ -474,7 +503,31 @@ public:
 		std::string nombreCustom;
 		std::getline(std::cin, nombreCustom);
 		Jugador	jugador(nombreCustom, 200, 20);
-		acto1(jugador);
+
+		//capitulo 1
+		while (completado == 0) {
+			acto1(jugador);
+			if (completado != 1) {
+				textoOmitible("Presiona cualquier tecla para volver a jugar...");
+				(void)_getch(); 
+				system("cls");
+				jugador.curarse(jugador.verVidaMaxima());
+			}
+		}
+
+		//capitulo 2
+		completado = 0;
+		while (completado == 0) {
+			acto2(jugador);
+			if (completado != 1) {
+				textoOmitible("Presiona cualquier tecla para volver a jugar...");
+				(void)_getch(); 
+				system("cls");
+				jugador.curarse(jugador.verVidaMaxima());
+			}
+		}
+
+
 	}
 
 	void modoTienda(Jugador& param_statsJugador){
@@ -507,6 +560,8 @@ public:
 
 	int modoCombate(std::string param_nombreEnemigo, int param_vidaEnemigo, int param_danioEnemigo, int param_curacionEnemigo, Jugador& param_statsJugador) {
 		Enemigo enemigo(param_nombreEnemigo, param_vidaEnemigo, param_danioEnemigo, 0, 1);
+		std::cout << "Vida Jugador: " << param_statsJugador.verVida() << std::endl;
+		std::cout << "Vida Enemigo: " << enemigo.verVida() << std::endl;
 		while (enemigo.estaVivo() && param_statsJugador.estaVivo()) {
 
 			//jugador
@@ -516,9 +571,9 @@ public:
 			if (!enemigo.estaVivo()) { //esta muerto?
 				std::cout << "Has derrotado a " << enemigo.verNombre() << std::endl;
 				param_statsJugador.subirNivel();
-				param_statsJugador.ganarOro(25);
+				param_statsJugador.ganarOro(50);
 				std::cout << "Presiona cualquier tecla para continuar..." << std::endl;
-				_getch();
+				(void)_getch(); 
 				system("cls");
 				return 1;
 				break;
@@ -549,7 +604,7 @@ public:
 			if (!param_statsJugador.estaVivo()) { //esta muerto?
 				std::cout << "Has sido derrotado" << std::endl;
 				std::cout << "Presiona cualquier tecla para continuar..." << std::endl;
-				_getch();
+				(void)_getch(); 
 				system("cls");
 				return 0;
 				break;
@@ -605,7 +660,7 @@ public:
 		} while (centinela == 0);
 
 		textoOmitible("Kung Lao: Nuestros antepasados lucharon en grandes guerras. Alcanzaron honor y gloria... y nosotros? \n\n" + param_statsJugador.verNombre() + ": Puede que no sea glorioso, pero lo que hacemos ayuda a que el pueblo prospere. \n\nKung Lao: Lo se. Pero acaso esta mal querer algo de emocion? \n\n" + param_statsJugador.verNombre() + ": Si eso es lo que quieres, te propongo una apuesta? Cena en el restaurante de la seniora Bo esta noche. El ultimo en llenar su carrito paga \n\nKung Lao: Trabajas mas rapido que yo? Ja! Desde cuando? Acepto el reto \n\nDespues de pasar toda la maniana recolectando coles llegan al restaurante de la seniora Bo \n\nPresiona cualquier tecla para continuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 
 		textoOmitible("El restaurante de Madam Bo estaba iluminado con calidas lamparas y lleno de vida. Apenas cruzaron la entrada, Kung Lao cerro los ojos y aspiro profundamente el aroma \n\nKung Lao: Este olor es increible \n\n" + param_statsJugador.verNombre() + ": Me muero de hambre. Me pregunto que estara preparando la seniora Bo esta noche \n\nSeniora Bo : Para ustedes? Lo que quieran \n\nKung Lao: Gracias, seniora Bo. Nos malcria \n\nLa mujer solto una pequenia risa \nSeniora Bo: Como los hijos que nunca tuve \n\nMientras servia el te, observo a ambos con seriedad \nSeniora Bo: Han estado practicando mis lecciones? \n\nKung Lao: Cuando podemos. La cosecha nos deja poco tiempo para las artes marciales \n\nSeniora Bo: Desde tus primeras palabras, Kung Lao, no has dicho mas que excusas. Si no te preparas... \n\nKung Lao: lo se... tus preparativos no funcionaran \n\nSeniora Bo: Bien. No lo has olvidado. Pero ya veremos si te preparo algo especial esta noche \n\n1. Me alegra que pagues tu. La seniora Bo esta tan enojada que seguro nos cobrara mas \n2. Por como lucia la seniora Bo suena a que te cobrara mas de lo normal\n\n");
@@ -643,10 +698,10 @@ public:
 		} while (centinela == 0);
 
 		textoOmitible("Kung Lao: Si. Aqui y Ahora. La seniora Bo puede observar y criticar nuestra tecnica \n\n" + param_statsJugador.verNombre() + ": Debemos tener cuidado. Nos echaran si rompemos algo \n\nKung Lao: (riendo) Esto no durara lo suficiente como para que eso suceda. Caeras en un abrir y cerrar de ojos\n\nContinuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 
-		switch (modoCombate("Kung Lao", 200, 20, 20, param_statsJugador)) {
+		switch (modoCombate("Kung Lao", 200, 20, 40, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("Kung Lao : Todavia no me has vencido \n\n" + param_statsJugador.verNombre() + ": El dia se acerca, Kung Lao \n\nKung Lao: *riendo* Sigue diciendote eso \n\nAl Kung Lao haber ganado la apuesta perdiste 50 piezas de oro \n\n\n");
 			param_statsJugador.comprarItem(50);
@@ -658,9 +713,9 @@ public:
 			std::cout << "Este caso no existe Devmin, error en los return de combate";
 			break;
 		}
-		param_statsJugador.curarse(200);
+		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
 		textoOmitible("A partir de aqui cuando pierdas significara derrota absoluta y deberas empezar el capitulo actual desde 0 \nPresiona cualquier tecla para continuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 
 		textoOmitible("Despues de la pelea, ambos comenzaron a devorar la comida servida por la seniora Bo \n\n" + param_statsJugador.verNombre() + ": Todo estaba delicioso, seniora Bo \n\nSeniora Bo: Siempre es un placer cocinar para ustedes \n\nTodo parecia tranquilo hasta que la puerta del restaurante se abrio violentamente. \nUn hombre vestido de negro avanzo lentamente entre el silencio del lugar. \n\nSmoke: Seniora Bo. Los Lin Kuei esperan su respuesta \n\nSeniora Bo : He estado ocupada, Smoke \n\n1. Los Lin Kuei? Quienes son? \n2. Seran triadas? \n\n");
@@ -681,7 +736,7 @@ public:
 		} while (centinela == 0);
 
 		textoOmitible("Kung Lao: No lo se. Pero no me gusta hacia donde va esto \n\n" + param_statsJugador.verNombre() + ": Que hacemos? \n\nKung Lao: Mantente preparado \n\nSmoke: Seniora Bo, la decision es sencilla. Pague por nuestra proteccion o arriesgue la integridad de este excelente establecimiento \n\nSeniora Bo: No obtendras nada de mi \n\nSmoke : Seniora Bo, tomo una mala decision \n\nDe repente, una espesa nube de humo cubrio todo el restaurante \n\nEntre el humo aparecieron varios guerreros misteriosos \n\nKung Lao: Seniora Bo! \n\nSmoke: Ustedes dos son valientes. Pero no pueden contra nosotros \n\nKung Lao: No nos importa quien seas ni con quien estes! No amenazas a la seniora Bo! \n\n" + param_statsJugador.verNombre() + ": Ayuda a los clientes Kung Lao, yo me encargo de el \n\nPresiona cualquier tecla para continuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 
 		switch (modoCombate("Smoke", 60, 20, 0, param_statsJugador)) {
@@ -697,10 +752,10 @@ public:
 			break;
 		}
 		textoOmitible("Sub-Zero: Congelate donde estas! \n\nObservan como el hielo se extiende por el suelo \n\n" + param_statsJugador.verNombre() + ": Como lo hace? \n\nKung Lao: (preocupado) No tengo idea. \n\nSub-Zero: Te entrometes en los asuntos de Lin Kuei. Vete o enfrentaras nuestra ira \n\nKung Lao: Abandonar a la seniora Bo? No va a suceder \n\nSientes como una cadena abraza tu pierna \n\nEscorpion: (enojado) Ven aqui! \n\nEres arrastrado hasta donde esta el sujeto con la cadena y ves como desprende fuego de las manos \n\nEscorpion: Deberias haber huido cuando pudiste. Preparate para arrepentirte de haberte cruzado con los Lin Kuei \n\nPresiona cualquier tecla para continuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 
-		switch (modoCombate("Escorpion", 70, 20, 40, param_statsJugador)) {
+		switch (modoCombate("Escorpion", 80, 30, 40, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("Cuando Scorpion abandono la casa de te saqueada, solo pudieron maravillarse con su habilidad. Kung Lao y tu se dieron cuenta de que la seniora Bo tenía razon: tienen mucho que aprender\n\n");
 			return;
@@ -713,10 +768,10 @@ public:
 			break;
 		}
 		textoOmitible("Logras ver a lo lejos a Kung Lao congelado de las manos sin poder moverse mientras el hombre de hielo se acerca a ti \n\nSub-Zero: ya he tenido suficiente de ti \n\n" + param_statsJugador.verNombre() + ": Entonces vete, antes de que te acabe como al resto de tus Lin Kuei \n\nSub-Zero: No tienes ninguna posibilidad contra el gran maestro de los Lin Kuei \n\nPresiona cualquier tecla para continuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 
-		switch (modoCombate("Sub-Zero", 80, 30, 40, param_statsJugador)) {
+		switch (modoCombate("Sub-Zero", 100, 40, 40, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("Despues de perder rotundamente ante Sub-Zero, te preguntas si alguna vez tuviste oportunidad contra el. Es evidente que todavia tienes mucho por aprender\n\n");
 			return;
@@ -767,11 +822,245 @@ public:
 		} while (centinela == 0);
 
 		textoOmitible("Excelente. No hay tiempo que perder, partimos en la maniana asi que preparense \n\nAntes de que se fueran a la academia Wu Shi fueron a comprar unos suministros para el viaje \n\nPresiona cualquier tecla para continuar...");
-		_getch();
+		(void)_getch(); 
 		system("cls");
 		modoTienda(param_statsJugador);
-		
 
+		system("cls");
+		std::cout << "Estado actual del jugador" << std::endl;
+		param_statsJugador.mostrarInfoJugador();
+		std::cout << "Presiona cualquier tecla para iniciar" << std::endl;
+		(void)_getch(); 
+
+		completado = 1;
+
+	}
+
+	void acto2(Jugador& param_statsJugador) {
+		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
+		system("cls");
+		int centinela = 0;
+
+		textoOmitible("En la Academia Wu Shi, Raiden y Kung Lao conocieron a Johnny Cage y Kenshi quienes se conocieron cuando kenshi intento entrar a arrebatarle la sento, una katana del clan Taira, la cual Kenshi buscaba liberar a su clan con la misma katana para luego ambos ser irrumpidos por Liu Kang para que se unieran a los campeones de la tierra. Meses despues los 4 llevan entrenando con los monjes shaolin diligentemente en preparacion para el proximo torneo contra el mundo exterior. Mientras tanto Kung Lao porfin habia perfeccionado su arma el sombrero de hoja el cual iba a presumirselo a " + param_statsJugador.verNombre() + "\n\nKung lao: Es una idea brillante, la proxima vez que vea a Sub-Zero tendre que agradecerle por inspirarme \n\nKung Lao se veia orgulloso de su extranio sobrero metalico \n\n1. Esta no es una mala idea \n2. Estas seguro que es buena idea? \n\n");
+		do {
+			switch (ingresarNumero()) {
+			case 1:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Esta no es una mala idea \n\n");
+				centinela = 1;
+				break;
+			case 2:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Estas seguro que es buena idea? \n\n");
+				centinela = 1;
+				break;
+			default:
+				centinela = 0;
+				break;
+			}
+		} while (centinela == 0);
+
+		textoOmitible("Kung Lao lanzo el sombrero contra uno de los muniecos de entrenamiento. El arma atraveso completamente el objetivo antes de regresar girando a sus manos \n\nKung Lao: Tal vez sea demasiado efectivo \n\nCerca de ellos, Johnny Cage observaba aburrido mientras descansaba sobre unas escaleras \n\nJohnny Cage: Tenemos que salir de aqui pronto. Llevo meses encerrado entrenando. Como voy a crear la mejor pelicula de la historia sobre el mundo exterior si nunca lo he visto? \n\nJohnny nos conto que era actor famoso del cine y que acepto formar parte de los campeones por la idea de filmar una pelicula baasada en el mundo exterior y el torneo. tambien nos conto que habia tenido una mala racha en el cine ultimamente y que por eso hacia esto. pero como provengo de un Fengjian, un pueblo alejado de la ciudad no estoy muy enterado de lo que habla... \n\nKenshi lo observaba con evidente fastidio \n\nKenshi: Por eso estas aqui? \n\nJohnny Cage: Liu Kang dijo que este trabajo cambiaria el rumbo de mi vida. Asi es como se hacen las cosas \n\nKenshi : Que desinteresado \n\nJohnny Cage : Oh, por favor, Tatuajes. Solo estas aqui para recuperar tu espada \n\n" + param_statsJugador.verNombre() + ": Todos tenemos nuestras razones. Pero no estamos aqui para pelear entre nosotros. Estamos aqui para defender la tierra \n\nEn ese instante, un enorme gong resono por toda la academia. Liu Kang aparecio frente a ellos acompaniado por varios monjes \n\nJohnny Cage: Ya era hora \n\nLiu Kang: Hoy uno de ustedes sera elegido para representar al Reino Terrenal en el torneo\n\n" + param_statsJugador.verNombre() + ": solo uno de nosotros luchara?\n\nLiu Kang: Las reglas del torneo otorgan esa ventaja al reino anfitrion. Y ahora le toca al mundo exterior ser el anfitrion \n\nJohnny Cage: Pregunta rapida... cuantas veces hemos ganado esto? \n\nLiu Kang: El Reino de la Tierra y el Mundo Exterior han estado igualados durante mucho tiempo. Pero el Mundo Exterior esta ganando fuerza. y si ganan quienes desean la guerra se sentiran libres de actuar \n\n1. Creia que admirabas al mundo exterior \n2. Suena que es un lugar clandestino \n\n");
+		do {
+			switch (ingresarNumero()) {
+			case 1:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Creia que admirabas el mundo exterior \n\n");
+				centinela = 1;
+				break;
+			case 2:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Suena que es un lugar clandestino \n\n");
+				centinela = 1;
+				break;
+			default:
+				centinela = 0;
+				break;
+			}
+		} while (centinela == 0);
+
+		textoOmitible("Liu Kang: Es un lugar de gran conocimiento, riqueza y belleza. Pero nuestros reinos no comparten objetivos ni creencias. Coexistimos pacificamente porque el mundo exterior respeta nuestra fuerza. Si mostraramos debilidad... nuestro rival se convertiria en nuestro enemigo \n\nKung Lao apretaba los punios \n\nKung Lao: No perdere, senior Liu Kang \n\nLiu Kang: Primero deberan ganar el derecho a representarnos. Quien de ustedes resista mas sera elegido. Raiden, da un paso al frente \n\nJohnny Cage: (rie) Buena idea. Primero hay que deshacerse de los debiles \n\nLiu Kang: Tendras que enfrentarte a el, Johnny Cage \n\nKenshi: Listo para tu primer acercamiento? \n\nJohnny Cage: Muy bien, hagamoslo. Pero recuerda, muchacho de granja, soy un icono mundial de las artes marciales. No creo que puedas soportar tanto estruendo \n\nPresiona cualquier tecla para continuar...");
+		(void)_getch();
+		system("cls");
+
+		switch (modoCombate("Johnny Cage", 180, 30, 40, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible("A pesar del feroz esfuerzo y la practica diligente, Te quedas corto. Sin embargo, tu fracaso no fue una derrota. Solo el primer paso a algo mas grande\n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible(param_statsJugador.verNombre() + ": Esta pelea fue un honor \n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+		textoOmitible("Liu Kang: Kenshi Takahashi, tu eres el siguiente \n\nKenshi : Tienes talento, Raiden, pero te falta experiencia \n\n" + param_statsJugador.verNombre() + ": Cualquier experiencia que me falte, la compenso con mi corazon \n\nKenshi: Lo que gana las peleas es el coraje, no el corazon \n\nAntes de comenzar el combate decides tomar un poco de aire para recuperar algo de fuerzas (recuperaste 60pts de salud) \n\npresiona cualquier tecla para continuar...");
+		param_statsJugador.curarse(60);
+		(void)_getch();
+		system("cls");
+
+		switch (modoCombate("Kenshi Takahashi", 180, 40, 40, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible("A pesar del feroz esfuerzo y la practica diligente, Te quedas corto. Sin embargo, tu fracaso no fue una derrota. Solo el primer paso a algo mas grande\n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible(param_statsJugador.verNombre() + ": Todavia dudas de mi osadia? \n\nKenshi: No. La tuya fue una victoria bien merecida \n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+		textoOmitible("Liu Kang: Puedes descansar, Raiden. Esta noche te enfrentaras a tu ultimo oponente \n\nHas recuperado toda la vida \n\nCayendo la silencio cubrio el patio de entrenamiento mientras ambos amigos se observaban frente a frente \n\nJohnny Cage: Apuesto cincuenta dolares a que gana Kung Lao \n\nKenshi : Hazlo interesante. Apuesta por Sento \n\nJohnny Cage: Ja! Ni en suenios \n\nLiu Kang: Raiden. Kung Lao. El ganador de este combate representara a la tierra contra el mundo exterior. Es un deber grave que no debe tomarse a la ligera \n\nKung Lao: (rie) Rindete, Raiden. Nunca me has vencido en un combate de verdad. Eso no cambiara hoy \n\nRaiden: Si los monjes nos han enseniado algo... es que la unica constante en el universo es el cambio \n\nPresiona cualquier tecla para continuar...");
+		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
+		(void)_getch();
+		system("cls");
+
+		switch (modoCombate("Kung Lao", 300, 40, 60, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible("Aunque habia perdido, todavia estaba orgulloso de mi mejor amigo. Como nuevo campeon de la tierra, Kung Lao estaba ahora un gran salto mas cerca de la gloria que anhelaba\n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible(param_statsJugador.verNombre() + ": Siempre hay una primera vez para todo, Kung Lao \n\nKung Lao bajo la mirada unos segundos antes de sonreir \n\nFelicidades, " + param_statsJugador.verNombre() + "\n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+		textoOmitible("Liu Kang: Si bien todos ustedes han entrenado bien, Raiden ha sobresalido. Este resultado no me sorprende. Para el torneo, necesitaras esto\n\n");
+		Item medallon("Medallon Electrico", "Forjado por los Dioses antiguos, otorga el poder del rayo y el trueno a quien lo porta (realiza 80 pts de danio)", 10000, 20, 80, 2);
+		medallon.mostrarItem();
+		param_statsJugador.agregarItemAlInventario(medallon);
+		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
+
+		textoOmitible("Observas fascinado la energia moviendose entre tus manos \n\nJohnny Cage: Santa Arca de la Alianza! \n\nLiu Kang: los habitantes del Mundo Exterior a los que te enfrentaras tambien manejan una magia poderosa. El amuleto equilibra la balanza \n\nPreiona cualquier tecla para continuar..."); 
+		(void)_getch();
+		system("cls");
+
+		modoTienda(param_statsJugador);
+		system("cls");
+
+		textoOmitible("Siete dias despues, los campeones partieron hacia el mundo exterior.Cuando cruzaron el portal dimensional, quedan completamente maravillados \n\nJohnny Cage : Tatuajes(refiriendose a kenshi), tengo la sensación de que ya no estamos en Kansas \n\nFrente a ellos aparecieron las princesas del mundo exterior.Mileena y Kitana \n\nLiu Kang : Permatanme presentarles a Johnny Cage, Kung Lao, Kenshi Takahashi y al campeon del Reino de la Tierra... " + param_statsJugador.verNombre() + "\n\nMileena: Senior Liu Kang, bienvenido.Espero que esten preparados.Nuestros campeones estan decididos a ganar \n\nCriaturas gigantes caminaban por las calles.Guerreros de multiples brazos custodiaban enormes palacios dorados.Bestias imposibles recorrian la ciudad como si fueran algo normal \n\n1.Esos son centauros ? \n2.Los monjes los describieron.Pero verlos en persona...\n\n");
+		do {
+			switch (ingresarNumero()) {
+			case 1:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Esos son centauros? \n\n");
+				centinela = 1;
+				break;
+			case 2:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Los monjes lo describieron. Pero verlos en persona... \n\n");
+				centinela = 1;
+				break;
+			default:
+				centinela = 0;
+				break;
+			}
+		} while (centinela == 0);
+
+		textoOmitible("Mileena: Los seres de seis brazos son Naknadans \n\nLiu Kang: Veo que Su Majestad, una vez mas, no escatima en gastos para el festival \n\nMileena: Es un homenaje a mi difunto padre \n\nLogras notar como una figura imponente de los Naknadans se acerca a ustedes \n\nJohnny Cage: Alerta roja. Se acerca el villano de serie B \n\nLiu Kang: General Shao. No dejes que te provoque \n\nGeneral Shao: (riendo) Soy yo, o el campeon de Earthrealm esta mas flaco de lo normal?. Destruiremos a tu campeon, Liu Kang. No saboreara la victoria \n\nLlegando al palacio de la emperatriz donde se realizara el torneo logras ver a una mujer frente al trono mostrando firmeza \n\nSindel : Bienvenidos, estimados invitados del Reino de la Tierra. Nos reunimos una vez mas para honrar el legado de mi difunto esposo. Para continuar el torneo que el fundo con Lord Liu Kang con la esperanza de que fomentara la paz entre los reinos. Que el alma de Jerrod nos vele con orgullo desde su lugar de descanso en el Bosque Viviente \n\nLiu Kang: Emperatriz Sindel. Me complace ser su huesped una vez mas \n\nSindel: Aqui siempre seras bienvenido. Ahora, conozcamos a tu campeon. \n\nLiu Kang : El campeon del Reino de la Tierra es " + param_statsJugador.verNombre() + ", Su Majestad. Se ha ganado su lugar al encarnar las mejores cualidades de la gente del Reino de la Tierra \n\nSindel : Pareces nervioso, jovencito \n\n1. Soy un extranio en tierra desconocida \n2. Estoy aqui para competir contra sus mejores luchadores \n\n");
+		do {
+			switch (ingresarNumero()) {
+			case 1:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Soy un extranio en tierra desconocida. Asi que si estoy nervioso \n\n");
+				centinela = 1;
+				break;
+			case 2:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Estoy aqui para competir contra sus mejores luchadores. Asi que si estoy nervioso \n\n");
+				centinela = 1;
+				break;
+			default:
+				centinela = 0;
+				break;
+			}
+		} while (centinela == 0);
+
+		textoOmitible("Sindel: Como debe ser. Te espera un camino dificil. Ya ha comenzado! Como manda la tradicion, la primera rival del Mundo Exterior seráala Primera Alguacil de Sun Do... Li Mei. Que defienda la gloria de nuestro reino y preserve el orden de nuestra capital \n\nLi Mei: Su Majestad. Honrare tanto a la casa real como a todo el mundo exterior con mi combate \n\nLiu Kang: Lo unico que tienes que hacer es dar lo mejor de ti. El resto se solucionara solo \n\nLi Mei: Veamos que puedes hacer? \n\nPresiona cualquier tecla para continuar...");
+		(void)_getch();
+		system("cls");
+
+		switch (modoCombate("Li Mei", 280, 40, 60, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible(param_statsJugador.verNombre() + ": Quede atonito al haber perdido el primer partido. No puedo evitar preguntarme si Liu Kang se habia equivocado al nombrarme campeon...\n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible("Sindel: Mis felicitaciones por un combate muy disputado. Veremos como te va en el proximo. General Shao. A quien has elegido como nuestro proximo competidor? \n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+		textoOmitible("General Shao: Majestad, he elegido a Reiko como mi segundo al mando. De ninio, Reiko quedo huerfano durante la Guerra de Kafallah. Aunque fue capturado, su espíritu permanecio intacto. Lucho con unias y dientes y sobrevivio. Tras la guerra, lo acogi. Lo forme hasta convertirlo en el soldado perfecto. Pocos estan tan versados ​​en las artes de la guerra como yo \n\nReiko: Este sera tu ultimo campo de batalla \n\nPresiona cualquier tecla para continuar... \n\n");
+		(void)_getch();
+		system("cls");
+
+		switch (modoCombate("Reiko", 300, 40, 60, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible(param_statsJugador.verNombre() + " quedo desconcertado por la satisfaccion burlona que obtuvo Reiko con su victoria. Como podria un hombre que nunca habia conocido considerarlo con tanto desden? \n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible(param_statsJugador.verNombre() + ": Derribado por un simple granjero. Estoy listo para mi proximo oponente, Su Majestad. A quien me enfrentare? \n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+		textoOmitible("Sindel: Paciencia. La sesion se aplaza hasta el amanecer. Espero verlos a todos en el banquete de esta noche \n\nEn el banquete de la noche todos se reunen para celebrar la llegada de los embajadores de la tierra \n\nSindel: Mi esposo Jerrod creia que el futuro de nuestros reinos residia en la union. Avancemos con un dialogo abierto, sin permitir que ningun secreto rompa nuestros lazos \n\nRaiden: Su Majestad. Es un honor estar aqui y conocer a su gente. Ya puedo ver que hay mas cosas que nos unen que las que nos dividen \n\nGeneral Shao: (risa burlona) Nuestros pueblos no podrian ser mas diferentes, campeon. Los habitantes de la Tierra carecen de todo... \n\nSindel: Ya basta, General \n\nGeneral Shao: Mis disculpas, Su Majestad. Quizas he disfrutado demasiado de este excelente vino. Con su permiso... \n\nSindel: Puedes irte \n\nTras ese incidente con el general Shao estuvimos festejando un rato más antes de que todos nos fueramos y prepararamos para el siguiente enfrentamiento \n\nPresiona cualquier tecla para continuar..."); 
+		(void)_getch();
+		system("cls");
+
+		modoTienda(param_statsJugador);
+		system("cls");
+		
+		textoOmitible("Sindel: Sigues sorprendiendome, Raiden.Solo quedan dos combates.a continuacion, te enfrentaras a mi hija Kitana ¿Estas preparado, habitante de la Tierra ? \n\nPresiona cualquier tecla para continuar...");
+		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
+
+		switch (modoCombate("Kitana", 340, 40, 80, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible(param_statsJugador.verNombre() + " se dio cuenta, demasiado tarde, de que habia subestimado a la princesa Kitana. Prometio no volver a dejarse seducir tanto por el encanto y la belleza \n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible(param_statsJugador.verNombre() + ": Luchas bien, Princesa \n\nKitana: Tu tambien, terricola. Sorprendentemente \n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+		textoOmitible("Sindel: Ha llegado el momento del combate final. El hecho de que hayas llegado hasta aqui es una prueba de tu valia. Pero ahora debes enfrentarte al General Shao. Vencedor de la Guerra de Tervaria. Conquistador de las Llanuras de Kuatan. Defensor de la Costa de Navala. Al igual que su familia durante generaciones, el General Shao nos defiende con fervor y tenacidad. Todo el mundo exterior le agradece sus servicios \n\n1. Esa es una lista de logros notable, General \n2. Sera un honor pelear contra alguien con una lista de logros así de notable, General\n\n");
+		do {
+			switch (ingresarNumero()) {
+			case 1:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Esa es una lista de logros notable, General \n\n");
+				centinela = 1;
+				break;
+			case 2:
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Sera un honor pelear contra alguien con una lista de logros así de notable, General \n\n");
+				centinela = 1;
+				break;
+			default:
+				centinela = 0;
+				break;
+			}
+		} while (centinela == 0);
+
+		textoOmitible("General Shao: Es solo una pequenia parte de ellos. Una recitacion completa llevaria dias \n\nEste sera tu ultimo combate por lo que procura darlo todo por el bien de la tierra \nPresiona cualquier tecla para continuar... \n\n");
+		(void)_getch();
+		system("cls");
+
+		switch (modoCombate("General Shao", 400, 50, 80, param_statsJugador)) {
+		case 0: //derrota
+			textoOmitible(param_statsJugador.verNombre() + " nunca se sintio tan deprimido como cuando el general Shao reclamo la victoria. Como habia predicho Liu Kang, su exito animo al mundo exterior a actuar agresivamente contra la tierra... \n\n");
+			return;
+			break;
+		case 1: //victoria
+			textoOmitible("Sindel: Felicitaciones, " + param_statsJugador.verNombre() + ". La Tierra a ganado \n\nLiu Kang: Bien hecho! Has superado con creces mis mayores expectativas Gracias a ti, los Forasteros que intentan perturbar la paz volveran a estar a raya. Ven. Despidamonos de nuestros anfitriones y regresemos al Reino de la Tierra.\n\nTras tu victoria las cosas en el mundo exterior se han calmado aunque aun habia un invasor ahi afuera tanto tu como los demas podran encargarse de ello... tristemente la historia acaba aqui pero no te desanimes ganaste el torneo y detuviste a los que querian perturbar la paz por lo que completaste el juego!\n\n");
+			break;
+		default:
+			std::cout << "Este caso no existe Devmin, error en los return de combate";
+			break;
+		}
+
+		completado = 1;
 	}
 };
 
