@@ -31,17 +31,17 @@ int ingresarNumero() {
 	return valor;
 }
 
-void textoOmitible(std::string texto) {
-	for (int i = 0; i < texto.size(); i++) {
+void textoOmitible(std::string param_texto) {
+	for (int i = 0; i < param_texto.size(); i++) {
 
 		if (_kbhit()) { //se omite el dialogo si se presiona una tecla
 			(void)_getch(); 
-			std::cout << texto.substr(i);
+			std::cout << param_texto.substr(i);
 			std::cout.flush();
 			return;
 		}
 
-		std::cout << texto[i];
+		std::cout << param_texto[i];
 		std::cout.flush();
 		Sleep(20);
 	}
@@ -164,7 +164,7 @@ public:
 		return nombre;
 	}
 
-	void curarse(int param_curacion) { //metodo de curarse
+	void curarse(int param_curacion) { //metodo de curarse le indicas cuanto te vas a curar 
 		vida += param_curacion;
 		if (vida > vidaMaxima) {
 			vida = vidaMaxima;
@@ -200,7 +200,7 @@ class Jugador : public Personaje {
 	//datos
 	std::vector<Item> inventarioPersonal;
 	int oro = 100;
-	int cooldownEspecial = 0;
+	int cooldownEspecial = 0; //cooldown utilizado para el ataque pesado y no se spame
 
 	//metodos
 public:
@@ -214,6 +214,24 @@ public:
 		oro = oro + param_ganancia;
 		std::cout << "Has ganado " << param_ganancia << " piezas de oro" << std::endl;
 		std::cout << "Oro actual: " << oro << "g" << std::endl;
+	}
+
+	size_t tamanioInventario() { //para sacar el tamaño del inventario utilizado para la tienda cuando se vende
+		return inventarioPersonal.size();
+	}
+
+	void venderItemInventario(int param_posicionItem) { //util para vender objetos que no quieras a cambio de otros 
+		if (param_posicionItem < inventarioPersonal.size() && param_posicionItem >= 0) {
+			oro += inventarioPersonal[param_posicionItem].mostrarPrecioItem();
+			inventarioPersonal.at(param_posicionItem).usarItem();
+			std::cout << "Vendiste un " << inventarioPersonal.at(param_posicionItem).mostrarNombreItem() << std::endl;
+			if (inventarioPersonal.at(param_posicionItem).mostrarCantidadItem() <= 0) {
+				inventarioPersonal.erase(inventarioPersonal.begin() + param_posicionItem);
+			}
+		}
+		else {
+			std::cout << "Selecciona una opcion valida..." << std::endl;
+		}
 	}
 
 	void agregarItemAlInventario(Item& itemComprado) { //guarda el objeto comprado en el inventario del jugador
@@ -266,7 +284,7 @@ public:
 		}
 	}
 
-	int mostrarOro() {
+	int mostrarOro() { 
 		return oro;
 	}
 
@@ -325,7 +343,7 @@ public:
 		}
 	}
 
-	void subirNivel() {
+	void subirNivel() { //permite subir una cantidad aleatoria de experiencia y si llegas a 10 de experiencia subes nivel junto con tus estadisticas
 		experiencia += generarNumeroAleatorio(6, 2);
 		if (experiencia >= 10) {
 			danio += 10;
@@ -369,7 +387,7 @@ class Categoria { //clase categoria de los items
 	std::vector<std::string> Debuffs = {
 		"Bomba",
 		"Cuchillo",
-		"Poción de Muerte"
+		"Pocion de Muerte"
 	};
 
 	//descripciones
@@ -378,9 +396,9 @@ class Categoria { //clase categoria de los items
 		"Devuelve mucha vida casi que te sientes totalmente restaurado(cura 200 puntos de salud)"
 	};
 	std::vector<std::string> descripcionItemCategoriaesDebuffs = {
-		"Aplica daño al enemigo (quita 60 puntos de vida al enemigo)",
+		"Aplica danio al enemigo (quita 60 puntos de vida al enemigo)",
 		"Clava un cuchillo en el enemigo, generandole algo de danio (quita 100 puntos de vida al enemigo)",
-		"Aplica mucho danioo al enemigo que lo puede conducir a la muerte (quita 200 puntos de vida al enemigo)"
+		"Aplica mucho danio al enemigo que lo puede conducir a la muerte (quita 200 puntos de vida al enemigo)"
 	};
 
 	//precios
@@ -492,20 +510,20 @@ public:
 };
 
 
-class Mundo {
+class Mundo { //clase del mundo, utilizada para el orden de la historia y llamados cortos para combates y tienda
 	//datos
 	int completado = 0;
 
 public:
 	//metodos
-	Mundo() {
+	Mundo() { //orden del mundo
 		aperturaHistoria();
 		std::string nombreCustom;
-		std::getline(std::cin, nombreCustom);
+		std::getline(std::cin, nombreCustom); //ingresas nombre para luego crear al jugador
 		Jugador	jugador(nombreCustom, 200, 20);
 
 		//capitulo 1
-		while (completado == 0) {
+		while (completado == 0) { //mientras el capitulo no se termine se volvera a empezar (usado para cuando pierdes volver a empezar)
 			acto1(jugador);
 			if (completado != 1) {
 				textoOmitible("Presiona cualquier tecla para volver a jugar...");
@@ -517,7 +535,7 @@ public:
 
 		//capitulo 2
 		completado = 0;
-		while (completado == 0) {
+		while (completado == 0) { //mientras el capitulo no se termine se volvera a empezar (usado para cuando pierdes volver a empezar)
 			acto2(jugador);
 			if (completado != 1) {
 				textoOmitible("Presiona cualquier tecla para volver a jugar...");
@@ -530,7 +548,7 @@ public:
 
 	}
 
-	void modoTienda(Jugador& param_statsJugador){
+	void modoTienda(Jugador& param_statsJugador){ //metodo utilizado para llamar a la tienda de items y permitir al jugador comprar o vender
 		//Tienda
 		int centinela = 0;
 		std::cout << "Un gusto joven. tengo mucha mercancia el dia de hoy, no dude en comprar si lo necesita" << std::endl;
@@ -540,7 +558,22 @@ public:
 			std::cout << "0. Salir de la Tienda \n1. Ver tu inventario \n2. Curaciones \n3. Arrojadizos" << std::endl;
 			centinela = ingresarNumero();
 			if (centinela == 1) { //muestra el inventario si elegiste la opcion 1
-				param_statsJugador.mostrarInventario();
+				int eleccion = 0;
+				do {
+					param_statsJugador.mostrarInventario();
+					if (param_statsJugador.tamanioInventario() != 0) { //permite vender un objeto si asi lo deseas
+						std::cout << "deseas vender algun objeto? (escribe 0 si no quieres vender algo)" << std::endl;
+						eleccion = ingresarNumero();
+						if (eleccion != 0) {
+							param_statsJugador.venderItemInventario(eleccion - 1);
+						}
+					}
+					else {
+						eleccion = 0;
+					}
+
+				} while (eleccion != 0);
+
 			}
 			else if (centinela > 1 && centinela <= 3) { //mientras no supere los rangos mantente alli 
 				int eleccion = 0;
@@ -558,7 +591,7 @@ public:
 		
 	}
 
-	int modoCombate(std::string param_nombreEnemigo, int param_vidaEnemigo, int param_danioEnemigo, int param_curacionEnemigo, Jugador& param_statsJugador) {
+	int modoCombate(std::string param_nombreEnemigo, int param_vidaEnemigo, int param_danioEnemigo, int param_curacionEnemigo, Jugador& param_statsJugador) { //metodo utilizado para los combates en la historia
 		Enemigo enemigo(param_nombreEnemigo, param_vidaEnemigo, param_danioEnemigo, 0, 1);
 		std::cout << "Vida Jugador: " << param_statsJugador.verVida() << std::endl;
 		std::cout << "Vida Enemigo: " << enemigo.verVida() << std::endl;
@@ -613,11 +646,11 @@ public:
 		}
 	}
 
-	void aperturaHistoria() {
+	void aperturaHistoria() {//prologo de la historia 
 		textoOmitible("Guardian del tiempo: Tras liberar el Reloj de Arena y convertirme en Guardian del Tiempo, \nmi siguiente tarea fue reiniciar la historia. Libre de ataduras al pasado, tenia la libertad de crear una nueva era. \nCon humildad y autocontrol me acerque a este lienzo en blanco. Tras una cuidadosa preparacion, comence mi trabajo, \npintando sobre la oscuridad. Tras eones, esboce los reinos. Tras eones mas, les di vida. En mi nueva era, \ntodos los seres tendran la oportunidad de vivir en paz. Que lo aprovechen o no, sera su responsabilidad. \nMi poder solo me permite empezar la tarea. Es deber de los mortales terminarla.\n \nGuardian del tiempo: Dime, cual es tu nombre, mortal?\n");
 	}
 
-	void acto1(Jugador& param_statsJugador) {
+	void acto1(Jugador& param_statsJugador) { //parte 1 de la historia ubicado en Fengjian principalmente en el restaurante de la señora bo
 		system("cls");
 		int centinela = 0;
 
@@ -836,7 +869,7 @@ public:
 
 	}
 
-	void acto2(Jugador& param_statsJugador) {
+	void acto2(Jugador& param_statsJugador) { //parte 2 de la historia ubicada en el templo shaolin y en el palacio de la emperatriz sindel en el mundo exterior
 		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
 		system("cls");
 		int centinela = 0;
@@ -926,7 +959,7 @@ public:
 			break;
 		}
 		textoOmitible("Liu Kang: Si bien todos ustedes han entrenado bien, Raiden ha sobresalido. Este resultado no me sorprende. Para el torneo, necesitaras esto\n\n");
-		Item medallon("Medallon Electrico", "Forjado por los Dioses antiguos, otorga el poder del rayo y el trueno a quien lo porta (realiza 80 pts de danio)", 10000, 20, 80, 2);
+		Item medallon("Medallon Electrico", "Forjado por los Dioses antiguos, otorga el poder del rayo y el trueno a quien lo porta (realiza 80 pts de danio)", 0, 20, 80, 2);
 		medallon.mostrarItem();
 		param_statsJugador.agregarItemAlInventario(medallon);
 		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
@@ -1067,7 +1100,7 @@ public:
 
 int main() {
 	std::srand(std::time(NULL));
-	Mundo aventura;
+	Mundo aventura; //inicia todo el bucle de la misión
 
 	return 0;
 
