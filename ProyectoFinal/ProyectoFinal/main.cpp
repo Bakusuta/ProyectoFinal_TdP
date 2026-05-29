@@ -8,6 +8,8 @@
 #define NOMINMAX
 
 #include <Windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
 
 /*
 camelCase -> variables y funciones(incluidos metodos)
@@ -635,6 +637,7 @@ public:
 			std::cout << "Vida Jugador: " << param_statsJugador.verVida() << std::endl;
 			std::cout << "Vida Enemigo: " << enemigo.verVida() << std::endl;
 			if (!param_statsJugador.estaVivo()) { //esta muerto?
+				PlaySound(TEXT("Defeat.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 				std::cout << "Has sido derrotado" << std::endl;
 				std::cout << "Presiona cualquier tecla para continuar..." << std::endl;
 				(void)_getch(); 
@@ -647,6 +650,7 @@ public:
 	}
 
 	void aperturaHistoria() {//prologo de la historia 
+		PlaySound(TEXT("Fengjian.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Guardian del tiempo: Tras liberar el Reloj de Arena y convertirme en Guardian del Tiempo, \nmi siguiente tarea fue reiniciar la historia. Libre de ataduras al pasado, tenia la libertad de crear una nueva era. \nCon humildad y autocontrol me acerque a este lienzo en blanco. Tras una cuidadosa preparacion, comence mi trabajo, \npintando sobre la oscuridad. Tras eones, esboce los reinos. Tras eones mas, les di vida. En mi nueva era, \ntodos los seres tendran la oportunidad de vivir en paz. Que lo aprovechen o no, sera su responsabilidad. \nMi poder solo me permite empezar la tarea. Es deber de los mortales terminarla.\n \nGuardian del tiempo: Dime, cual es tu nombre, mortal?\n");
 	}
 
@@ -696,6 +700,7 @@ public:
 		(void)_getch(); 
 		system("cls");
 
+		PlaySound(TEXT("MadamBo.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("El restaurante de Madam Bo estaba iluminado con calidas lamparas y lleno de vida. Apenas cruzaron la entrada, Kung Lao cerro los ojos y aspiro profundamente el aroma \n\nKung Lao: Este olor es increible \n\n" + param_statsJugador.verNombre() + ": Me muero de hambre. Me pregunto que estara preparando la seniora Bo esta noche \n\nSeniora Bo : Para ustedes? Lo que quieran \n\nKung Lao: Gracias, seniora Bo. Nos malcria \n\nLa mujer solto una pequenia risa \nSeniora Bo: Como los hijos que nunca tuve \n\nMientras servia el te, observo a ambos con seriedad \nSeniora Bo: Han estado practicando mis lecciones? \n\nKung Lao: Cuando podemos. La cosecha nos deja poco tiempo para las artes marciales \n\nSeniora Bo: Desde tus primeras palabras, Kung Lao, no has dicho mas que excusas. Si no te preparas... \n\nKung Lao: lo se... tus preparativos no funcionaran \n\nSeniora Bo: Bien. No lo has olvidado. Pero ya veremos si te preparo algo especial esta noche \n\n1. Me alegra que pagues tu. La seniora Bo esta tan enojada que seguro nos cobrara mas \n2. Por como lucia la seniora Bo suena a que te cobrara mas de lo normal\n\n");
 		do {
 			switch (ingresarNumero()) {
@@ -721,7 +726,7 @@ public:
 				centinela = 1;
 				break;
 			case 2:
-				textoOmitible("\n" + param_statsJugador.verNombre() + "Esto es para demostrarle a la seniora Bo que has estado entrenando?\n\n");
+				textoOmitible("\n" + param_statsJugador.verNombre() + ": Esto es para demostrarle a la seniora Bo que has estado entrenando?\n\n");
 				centinela = 1;
 				break;
 			default:
@@ -734,6 +739,7 @@ public:
 		(void)_getch(); 
 		system("cls");
 
+		PlaySound(TEXT("TeaHouseFight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		switch (modoCombate("Kung Lao", 200, 20, 40, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("Kung Lao : Todavia no me has vencido \n\n" + param_statsJugador.verNombre() + ": El dia se acerca, Kung Lao \n\nKung Lao: *riendo* Sigue diciendote eso \n\nAl Kung Lao haber ganado la apuesta perdiste 50 piezas de oro \n\n\n");
@@ -751,6 +757,7 @@ public:
 		(void)_getch(); 
 		system("cls");
 
+		PlaySound(TEXT("MadamBoNight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Despues de la pelea, ambos comenzaron a devorar la comida servida por la seniora Bo \n\n" + param_statsJugador.verNombre() + ": Todo estaba delicioso, seniora Bo \n\nSeniora Bo: Siempre es un placer cocinar para ustedes \n\nTodo parecia tranquilo hasta que la puerta del restaurante se abrio violentamente. \nUn hombre vestido de negro avanzo lentamente entre el silencio del lugar. \n\nSmoke: Seniora Bo. Los Lin Kuei esperan su respuesta \n\nSeniora Bo : He estado ocupada, Smoke \n\n1. Los Lin Kuei? Quienes son? \n2. Seran triadas? \n\n");
 		do {
 			switch (ingresarNumero()) {
@@ -772,6 +779,7 @@ public:
 		(void)_getch(); 
 		system("cls");
 
+		PlaySound(TEXT("TeaHouseFight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		switch (modoCombate("Smoke", 60, 20, 0, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("observas impotente como saqueaban la casa de te. Has decepcionado tanto a la seniora Bo\n\n");
@@ -816,7 +824,8 @@ public:
 			std::cout << "Este caso no existe Devmin, error en los return de combate";
 			break;
 		}
-		textoOmitible("Kung Lao: " + param_statsJugador.verNombre() + ", por aqui! \n\nTe diriges para donde se encuentra Kung Lao y encuentras a Madam Bo inconsciente entre los restos del restaurante \n\n" + param_statsJugador.verNombre() + ": esta inconsciente \n\nKung lao: Oh no. No estara...? \n\nSeniora Bo : Muerta? Todavia no \n\nAntes de que pudieran reaccionar, una figura rodeada de fuego aparecio detras de ellos. Sus ojos brillaban como brasas ardientes \n\nLiu Kang : Entonces, se seniora Bo, estan listos? \n\nSeniora Bo : Un poco cabezones, tal vez... Pero estan listos \n\n1. Sus ojos... \n2. quien eres? \n3. Acaso eres otro Lin Kuei?\n\n");
+		PlaySound(TEXT("LiuKang.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+		textoOmitible("Kung Lao: " + param_statsJugador.verNombre() + ", por aqui! \n\nTe diriges para donde se encuentra Kung Lao y encuentras a Madam Bo inconsciente entre los restos del restaurante \n\n" + param_statsJugador.verNombre() + ": esta inconsciente \n\nKung lao: Oh no. No estara...? \n\nSeniora Bo : Muerta? Todavia no \n\nAntes de que pudieran reaccionar, una figura rodeada de fuego aparecio detras de ellos. Sus ojos brillaban como brasas ardientes \n\nLiu Kang : Entonces, seniora Bo, estan listos? \n\nSeniora Bo : Un poco cabezones, tal vez... Pero estan listos \n\n1. Sus ojos... \n2. quien eres? \n3. Acaso eres otro Lin Kuei?\n\n");
 		do {
 			switch (ingresarNumero()) {
 			case 1:
@@ -874,6 +883,7 @@ public:
 		system("cls");
 		int centinela = 0;
 
+		PlaySound(TEXT("WuShiAcademy.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("En la Academia Wu Shi, Raiden y Kung Lao conocieron a Johnny Cage y Kenshi quienes se conocieron cuando kenshi intento entrar a arrebatarle la sento, una katana del clan Taira, la cual Kenshi buscaba liberar a su clan con la misma katana para luego ambos ser irrumpidos por Liu Kang para que se unieran a los campeones de la tierra. Meses despues los 4 llevan entrenando con los monjes shaolin diligentemente en preparacion para el proximo torneo contra el mundo exterior. Mientras tanto Kung Lao porfin habia perfeccionado su arma el sombrero de hoja el cual iba a presumirselo a " + param_statsJugador.verNombre() + "\n\nKung lao: Es una idea brillante, la proxima vez que vea a Sub-Zero tendre que agradecerle por inspirarme \n\nKung Lao se veia orgulloso de su extranio sobrero metalico \n\n1. Esta no es una mala idea \n2. Estas seguro que es buena idea? \n\n");
 		do {
 			switch (ingresarNumero()) {
@@ -912,6 +922,7 @@ public:
 		(void)_getch();
 		system("cls");
 
+		PlaySound(TEXT("WuShiFight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		switch (modoCombate("Johnny Cage", 180, 30, 40, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("A pesar del feroz esfuerzo y la practica diligente, Te quedas corto. Sin embargo, tu fracaso no fue una derrota. Solo el primer paso a algo mas grande\n\n");
@@ -941,11 +952,13 @@ public:
 			std::cout << "Este caso no existe Devmin, error en los return de combate";
 			break;
 		}
+		PlaySound(TEXT("MadamBoNight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Liu Kang: Puedes descansar, Raiden. Esta noche te enfrentaras a tu ultimo oponente \n\nHas recuperado toda la vida \n\nCayendo la silencio cubrio el patio de entrenamiento mientras ambos amigos se observaban frente a frente \n\nJohnny Cage: Apuesto cincuenta dolares a que gana Kung Lao \n\nKenshi : Hazlo interesante. Apuesta por Sento \n\nJohnny Cage: Ja! Ni en suenios \n\nLiu Kang: Raiden. Kung Lao. El ganador de este combate representara a la tierra contra el mundo exterior. Es un deber grave que no debe tomarse a la ligera \n\nKung Lao: (rie) Rindete, Raiden. Nunca me has vencido en un combate de verdad. Eso no cambiara hoy \n\nRaiden: Si los monjes nos han enseniado algo... es que la unica constante en el universo es el cambio \n\nPresiona cualquier tecla para continuar...");
 		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
 		(void)_getch();
 		system("cls");
 
+		PlaySound(TEXT("WuShiFight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		switch (modoCombate("Kung Lao", 300, 40, 60, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible("Aunque habia perdido, todavia estaba orgulloso de mi mejor amigo. Como nuevo campeon de la tierra, Kung Lao estaba ahora un gran salto mas cerca de la gloria que anhelaba\n\n");
@@ -958,6 +971,7 @@ public:
 			std::cout << "Este caso no existe Devmin, error en los return de combate";
 			break;
 		}
+		PlaySound(TEXT("WuShiAcademy.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Liu Kang: Si bien todos ustedes han entrenado bien, Raiden ha sobresalido. Este resultado no me sorprende. Para el torneo, necesitaras esto\n\n");
 		Item medallon("Medallon Electrico", "Forjado por los Dioses antiguos, otorga el poder del rayo y el trueno a quien lo porta (realiza 80 pts de danio)", 0, 20, 80, 2);
 		medallon.mostrarItem();
@@ -971,6 +985,7 @@ public:
 		modoTienda(param_statsJugador);
 		system("cls");
 
+		PlaySound(TEXT("OutWorld.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Siete dias despues, los campeones partieron hacia el mundo exterior.Cuando cruzaron el portal dimensional, quedan completamente maravillados \n\nJohnny Cage : Tatuajes(refiriendose a kenshi), tengo la sensación de que ya no estamos en Kansas \n\nFrente a ellos aparecieron las princesas del mundo exterior.Mileena y Kitana \n\nLiu Kang : Permatanme presentarles a Johnny Cage, Kung Lao, Kenshi Takahashi y al campeon del Reino de la Tierra... " + param_statsJugador.verNombre() + "\n\nMileena: Senior Liu Kang, bienvenido.Espero que esten preparados.Nuestros campeones estan decididos a ganar \n\nCriaturas gigantes caminaban por las calles.Guerreros de multiples brazos custodiaban enormes palacios dorados.Bestias imposibles recorrian la ciudad como si fueran algo normal \n\n1.Esos son centauros ? \n2.Los monjes los describieron.Pero verlos en persona...\n\n");
 		do {
 			switch (ingresarNumero()) {
@@ -1009,6 +1024,7 @@ public:
 		(void)_getch();
 		system("cls");
 
+		PlaySound(TEXT("OutWorldFight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		switch (modoCombate("Li Mei", 280, 40, 60, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible(param_statsJugador.verNombre() + ": Quede atonito al haber perdido el primer partido. No puedo evitar preguntarme si Liu Kang se habia equivocado al nombrarme campeon...\n\n");
@@ -1037,6 +1053,7 @@ public:
 			std::cout << "Este caso no existe Devmin, error en los return de combate";
 			break;
 		}
+		PlaySound(TEXT("MadamBoNight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Sindel: Paciencia. La sesion se aplaza hasta el amanecer. Espero verlos a todos en el banquete de esta noche \n\nEn el banquete de la noche todos se reunen para celebrar la llegada de los embajadores de la tierra \n\nSindel: Mi esposo Jerrod creia que el futuro de nuestros reinos residia en la union. Avancemos con un dialogo abierto, sin permitir que ningun secreto rompa nuestros lazos \n\nRaiden: Su Majestad. Es un honor estar aqui y conocer a su gente. Ya puedo ver que hay mas cosas que nos unen que las que nos dividen \n\nGeneral Shao: (risa burlona) Nuestros pueblos no podrian ser mas diferentes, campeon. Los habitantes de la Tierra carecen de todo... \n\nSindel: Ya basta, General \n\nGeneral Shao: Mis disculpas, Su Majestad. Quizas he disfrutado demasiado de este excelente vino. Con su permiso... \n\nSindel: Puedes irte \n\nTras ese incidente con el general Shao estuvimos festejando un rato más antes de que todos nos fueramos y prepararamos para el siguiente enfrentamiento \n\nPresiona cualquier tecla para continuar..."); 
 		(void)_getch();
 		system("cls");
@@ -1047,6 +1064,7 @@ public:
 		textoOmitible("Sindel: Sigues sorprendiendome, Raiden.Solo quedan dos combates.a continuacion, te enfrentaras a mi hija Kitana ¿Estas preparado, habitante de la Tierra ? \n\nPresiona cualquier tecla para continuar...");
 		param_statsJugador.curarse(param_statsJugador.verVidaMaxima());
 
+		PlaySound(TEXT("OutWorldFight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		switch (modoCombate("Kitana", 340, 40, 80, param_statsJugador)) {
 		case 0: //derrota
 			textoOmitible(param_statsJugador.verNombre() + " se dio cuenta, demasiado tarde, de que habia subestimado a la princesa Kitana. Prometio no volver a dejarse seducir tanto por el encanto y la belleza \n\n");
@@ -1059,6 +1077,7 @@ public:
 			std::cout << "Este caso no existe Devmin, error en los return de combate";
 			break;
 		}
+		PlaySound(TEXT("MadamBoNight.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("Sindel: Ha llegado el momento del combate final. El hecho de que hayas llegado hasta aqui es una prueba de tu valia. Pero ahora debes enfrentarte al General Shao. Vencedor de la Guerra de Tervaria. Conquistador de las Llanuras de Kuatan. Defensor de la Costa de Navala. Al igual que su familia durante generaciones, el General Shao nos defiende con fervor y tenacidad. Todo el mundo exterior le agradece sus servicios \n\n1. Esa es una lista de logros notable, General \n2. Sera un honor pelear contra alguien con una lista de logros así de notable, General\n\n");
 		do {
 			switch (ingresarNumero()) {
@@ -1076,6 +1095,7 @@ public:
 			}
 		} while (centinela == 0);
 
+		PlaySound(TEXT("GeneralShao.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 		textoOmitible("General Shao: Es solo una pequenia parte de ellos. Una recitacion completa llevaria dias \n\nEste sera tu ultimo combate por lo que procura darlo todo por el bien de la tierra \nPresiona cualquier tecla para continuar... \n\n");
 		(void)_getch();
 		system("cls");
@@ -1086,6 +1106,7 @@ public:
 			return;
 			break;
 		case 1: //victoria
+			PlaySound(TEXT("LiuKang.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 			textoOmitible("Sindel: Felicitaciones, " + param_statsJugador.verNombre() + ". La Tierra a ganado \n\nLiu Kang: Bien hecho! Has superado con creces mis mayores expectativas Gracias a ti, los Forasteros que intentan perturbar la paz volveran a estar a raya. Ven. Despidamonos de nuestros anfitriones y regresemos al Reino de la Tierra.\n\nTras tu victoria las cosas en el mundo exterior se han calmado aunque aun habia un invasor ahi afuera tanto tu como los demas podran encargarse de ello... tristemente la historia acaba aqui pero no te desanimes ganaste el torneo y detuviste a los que querian perturbar la paz por lo que completaste el juego!\n\n");
 			break;
 		default:
