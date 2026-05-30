@@ -34,8 +34,9 @@ El juego utiliza archivos de musica externos, por lo que es importante colocar l
 1. Abrir el proyecto en Visual Studio
 2. Compilar el proyecto en modo Debug o Release
 3. Localizar la carpeta donde se generó el archivo ejecutable .exe (x64/debug)
-4. descomprimir la carpeta musica y sacar todos los archivos de la carpeta para que esten junto al ejecutable .exe
-5. ejecutar el juego 
+4. Descarga la carpeta de musica en el drive de este enlace  https://drive.google.com/file/d/1EvXnSSLcs1bX76ki1LtQsuYu36G7lLlG/view?usp=sharing 
+5. descomprimir la carpeta musica y sacar todos los archivos de la carpeta para que esten junto al ejecutable .exe
+6. ejecutar el juego
 
 IMPORTANTE: si las musicas no están junto al ejecutable, el juego podrá abrir pero la música no se reproducirá correctamente
 
